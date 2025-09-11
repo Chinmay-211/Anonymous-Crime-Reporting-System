@@ -1,0 +1,8 @@
+{
+  "success": true,
+  "message": "FIR has been successfully submitted and recorded on the ledger.",
+  "firId": "FIR-2025-09-10-a1b2c3d4",
+  "trackingId": "TRACK-XYZ-789012",
+  "blockNumber": 101,
+  "transactionId": "txid_f8e8d8c8b8a8"
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "courtCaseId": "CRT-001",
+    "caseId": "CASE-001",
+    "firId": "FIR-2025-09-01-abcdef12",
+    "title": "State vs. John Doe (Robbery at City Bank)",
+    "status": "Trial Scheduled",
+    "nextHearingDate": "2025-10-15T10:00:00Z",
+    "summary": "The case involves the robbery at City Bank. Key evidence includes forensic reports and witness statements."
+  },
+  {
+    "courtCaseId": "CRT-002",
+    "caseId": "CASE-003",
+    "firId": "FIR-2025-09-05-mnopqr56",
+    "title": "State vs. Phishing Syndicate",
+    "status": "Hearing",
+    "nextHearingDate": "2025-10-20T14:00:00Z",
+    "summary": "Case regarding a large-scale cybercrime phishing scam. Digital evidence from forensic analysis is pending review."
+  }
+]
