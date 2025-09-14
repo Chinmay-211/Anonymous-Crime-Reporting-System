@@ -1,0 +1,26 @@
+[
+  {
+    "name": "CaseDetailsCollection",
+    "policy": "OR('PoliceMSP.member', 'CourtsMSP.member')",
+    "requiredPeerCount": 1,
+    "maxPeerCount": 2,
+    "blockToLive": 100000,
+    "memberOnlyRead": true
+  },
+  {
+    "name": "ForensicReportsCollection",
+    "policy": "OR('PoliceMSP.member', 'ForensicsMSP.member')",
+    "requiredPeerCount": 1,
+    "maxPeerCount": 2,
+    "blockToLive": 100000,
+    "memberOnlyRead": true
+  },
+  {
+    "name": "GeneralMetadataCollection",
+    "policy": "OR('PoliceMSP.member', 'ForensicsMSP.member', 'CourtsMSP.member')",
+    "requiredPeerCount": 1,
+    "maxPeerCount": 3,
+    "blockToLive": 0,
+    "memberOnlyRead": false
+  }
+]

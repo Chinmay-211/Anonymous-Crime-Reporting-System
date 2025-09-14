@@ -1,0 +1,235 @@
+# configtx.yaml — xCRM Network Configuration
+# Use with configtxgen to generate genesis block and channel tx files.
+
+################################################################################
+#
+#   SECTION: Organizations
+#
+#   - Defines the organizational identities for orderer and peer organizations.
+#   - Each org includes MSP ID, domain, crypto material path, and anchor peers.
+#
+################################################################################
+Organizations:
+
+  # Orderer Organization — manages the ordering service
+  - &OrdererOrg
+    Name: OrdererOrg
+    ID: OrdererMSP
+    MSPDir: crypto-config/ordererOrganizations/xcrm.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('OrdererMSP.admin')"
+
+  # Police Organization — manages police peers
+  - &PoliceOrg
+    Name: PoliceOrg
+    ID: PoliceMSP
+    MSPDir: crypto-config/peerOrganizations/police.xcrm.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('PoliceMSP.admin', 'PoliceMSP.peer', 'PoliceMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('PoliceMSP.admin', 'PoliceMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('PoliceMSP.admin')"
+    AnchorPeers:
+      - Host: peer0.police.xcrm.com
+        Port: 7051
+
+  # Forensics Organization — manages forensics peers
+  - &ForensicsOrg
+    Name: ForensicsOrg
+    ID: ForensicsMSP
+    MSPDir: crypto-config/peerOrganizations/forensics.xcrm.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('ForensicsMSP.admin', 'ForensicsMSP.peer', 'ForensicsMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('ForensicsMSP.admin', 'ForensicsMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('ForensicsMSP.admin')"
+    AnchorPeers:
+      - Host: peer0.forensics.xcrm.com
+        Port: 8051
+
+  # Courts Organization — manages courts peers
+  - &CourtsOrg
+    Name: CourtsOrg
+    ID: CourtsMSP
+    MSPDir: crypto-config/peerOrganizations/courts.xcrm.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('CourtsMSP.admin', 'CourtsMSP.peer', 'CourtsMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('CourtsMSP.admin', 'CourtsMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('CourtsMSP.admin')"
+    AnchorPeers:
+      - Host: peer0.courts.xcrm.com
+        Port: 9051
+
+
+################################################################################
+#
+#   SECTION: Capabilities
+#
+#   - Defines the Fabric feature levels required by nodes.
+#   - Ensures compatibility across components.
+#
+################################################################################
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_5: true
+
+
+################################################################################
+#
+#   SECTION: Application
+#
+#   - Defines default policies for application-level transactions.
+#   - Used in channel creation.
+#
+################################################################################
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+
+################################################################################
+#
+#   SECTION: Orderer
+#
+#   - Defines the ordering service configuration.
+#   - Uses etcdraft consensus (recommended for production and dev).
+#   - Batch timeout and size set for development.
+#
+################################################################################
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  Addresses:
+    - orderer.xcrm.com:7050
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Capabilities:
+    <<: *OrdererCapabilities
+  EtcdRaft:
+    Consenters:
+      - Host: orderer.xcrm.com
+        Port: 7050
+        ClientTLSCert: crypto-config/ordererOrganizations/xcrm.com/orderers/orderer.xcrm.com/tls/server.crt
+        ServerTLSCert: crypto-config/ordererOrganizations/xcrm.com/orderers/orderer.xcrm.com/tls/server.crt
+
+
+################################################################################
+#
+#   SECTION: Channel
+#
+#   - Defines default policies for channels.
+#
+################################################################################
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+
+################################################################################
+#
+#   SECTION: Profiles
+#
+#   - Predefined configurations for generating genesis block and channel tx.
+#
+################################################################################
+Profiles:
+
+  # Profile for generating the orderer system channel genesis block
+  OrdererGenesis:
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *OrdererOrg
+      Capabilities:
+        <<: *OrdererCapabilities
+    Consortiums:
+      CrimeConsortium:
+        Organizations:
+          - *PoliceOrg
+          - *ForensicsOrg
+          - *CourtsOrg
+
+  # Profile for generating the application channel "crimechannel"
+  CrimeChannel:
+    <<: *ChannelDefaults
+    Consortium: CrimeConsortium
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *PoliceOrg
+        - *ForensicsOrg
+        - *CourtsOrg
+      Capabilities:
+        <<: *ApplicationCapabilities

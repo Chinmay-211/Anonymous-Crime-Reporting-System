@@ -1,0 +1,186 @@
+# docker-compose.yaml — xCRM Development Network (Fabric v2.5.x)
+# Run with: docker-compose up -d
+
+version: '3.8'
+
+networks:
+  xcrm-network:
+    driver: bridge
+
+volumes:
+  # Persistent ledger volumes
+  orderer.xcrm.com.ledger:
+  peer0.police.xcrm.com.ledger:
+  peer0.forensics.xcrm.com.ledger:
+  peer0.courts.xcrm.com.ledger:
+
+  # CouchDB data volumes
+  couchdb-police:
+  couchdb-forensics:
+  couchdb-courts:
+
+services:
+
+  # ================================
+  # ORDERER SERVICE
+  # ================================
+  orderer.xcrm.com:
+    image: hyperledger/fabric-orderer:2.5
+    container_name: orderer.xcrm.com
+    environment:
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/fabric/genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=false
+    volumes:
+      - ./crypto-config/ordererOrganizations/xcrm.com/orderers/orderer.xcrm.com/msp:/etc/hyperledger/msp/orderer/msp
+      - ./channel-artifacts/genesis.block:/etc/hyperledger/fabric/genesis.block
+      - orderer.xcrm.com.ledger:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+    networks:
+      - xcrm-network
+
+  # ================================
+  # COUCHDB FOR POLICE ORG
+  # ================================
+  couchdb-police:
+    image: couchdb:3.2.2
+    container_name: couchdb-police
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    ports:
+      - 5984:5984
+    volumes:
+      - couchdb-police:/opt/couchdb/data
+    networks:
+      - xcrm-network
+
+  # ================================
+  # PEER0 - POLICE ORG
+  # ================================
+  peer0.police.xcrm.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.police.xcrm.com
+    environment:
+      - CORE_PEER_ID=peer0.police.xcrm.com
+      - CORE_PEER_ADDRESS=peer0.police.xcrm.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.police.xcrm.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.police.xcrm.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.police.xcrm.com:7051
+      - CORE_PEER_LOCALMSPID=PoliceMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/msp
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb-police:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - ./crypto-config/peerOrganizations/police.xcrm.com/peers/peer0.police.xcrm.com/msp:/etc/hyperledger/msp/peer/msp
+      - peer0.police.xcrm.com.ledger:/var/hyperledger/production
+    depends_on:
+      - couchdb-police
+    ports:
+      - 7051:7051
+    networks:
+      - xcrm-network
+
+  # ================================
+  # COUCHDB FOR FORENSICS ORG
+  # ================================
+  couchdb-forensics:
+    image: couchdb:3.2.2
+    container_name: couchdb-forensics
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    ports:
+      - 7984:5984
+    volumes:
+      - couchdb-forensics:/opt/couchdb/data
+    networks:
+      - xcrm-network
+
+  # ================================
+  # PEER0 - FORENSICS ORG
+  # ================================
+  peer0.forensics.xcrm.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.forensics.xcrm.com
+    environment:
+      - CORE_PEER_ID=peer0.forensics.xcrm.com
+      - CORE_PEER_ADDRESS=peer0.forensics.xcrm.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.forensics.xcrm.com:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.police.xcrm.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.forensics.xcrm.com:8051
+      - CORE_PEER_LOCALMSPID=ForensicsMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/msp
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb-forensics:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - ./crypto-config/peerOrganizations/forensics.xcrm.com/peers/peer0.forensics.xcrm.com/msp:/etc/hyperledger/msp/peer/msp
+      - peer0.forensics.xcrm.com.ledger:/var/hyperledger/production
+    depends_on:
+      - couchdb-forensics
+    ports:
+      - 8051:8051
+    networks:
+      - xcrm-network
+
+  # ================================
+  # COUCHDB FOR COURTS ORG
+  # ================================
+  couchdb-courts:
+    image: couchdb:3.2.2
+    container_name: couchdb-courts
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    ports:
+      - 9984:5984
+    volumes:
+      - couchdb-courts:/opt/couchdb/data
+    networks:
+      - xcrm-network
+
+  # ================================
+  # PEER0 - COURTS ORG
+  # ================================
+  peer0.courts.xcrm.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.courts.xcrm.com
+    environment:
+      - CORE_PEER_ID=peer0.courts.xcrm.com
+      - CORE_PEER_ADDRESS=peer0.courts.xcrm.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.courts.xcrm.com:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.police.xcrm.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.courts.xcrm.com:9051
+      - CORE_PEER_LOCALMSPID=CourtsMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/msp
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb-courts:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - ./crypto-config/peerOrganizations/courts.xcrm.com/peers/peer0.courts.xcrm.com/msp:/etc/hyperledger/msp/peer/msp
+      - peer0.courts.xcrm.com.ledger:/var/hyperledger/production
+    depends_on:
+      - couchdb-courts
+    ports:
+      - 9051:9051
+    networks:
+      - xcrm-network
