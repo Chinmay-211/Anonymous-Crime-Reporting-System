@@ -1,0 +1,9 @@
+peer:
+  bccsp:
+    default: SW
+    sw:
+      hash: SHA2
+      security: 256
+      filekeystore:
+        # This can be empty — peer will use default temp dir
+        keystore:

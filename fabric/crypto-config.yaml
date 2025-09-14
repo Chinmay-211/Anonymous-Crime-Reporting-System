@@ -1,0 +1,34 @@
+# crypto-config.yaml
+# Defines the organizational structure for cryptogen to generate MSP crypto material.
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: xcrm.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  - Name: Police
+    Domain: police.xcrm.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 1
+
+  - Name: Forensics
+    Domain: forensics.xcrm.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 1
+
+  - Name: Courts
+    Domain: courts.xcrm.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 1

@@ -1,0 +1,14 @@
+{
+  "name": "xcrm",
+  "version": "1.0.0",
+  "description": "xCRM Chaincode",
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "start": "fabric-chaincode-node start"
+  },
+  "dependencies": {
+    "fabric-contract-api": "^2.5.5"
+  }
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "forensicId": "FOR-001",
+    "caseId": "CASE-003",
+    "firId": "FIR-2025-09-05-mnopqr56",
+    "requestType": "Digital Evidence Analysis",
+    "status": "In Progress",
+    "sharedOn": "2025-09-06T09:00:00Z",
+    "evidenceSummary": [
+      "1x Laptop (encrypted)",
+      "1x USB Drive (corrupted)"
+    ]
+  }
+]
