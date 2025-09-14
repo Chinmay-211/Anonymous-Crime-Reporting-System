@@ -34,7 +34,7 @@ Key Features:
 | `/fabric`       | Blockchain network setup and chaincode       | Dynamic         |
 | `/cacti`        | Interoperability configs and documentation   | Shann           |
 | `/backend`      | Node.js APIs                                 | Demon Hegde     |
-| `/frontend`     | ReactJS application                          | Anu             |
+| `/frontend`     | ReactJS application                          | Omnitrix        |
 | `/tests`        | Integration, performance, and mock test cases| All Members     |
 | `/project-plan` | Timelines, meeting notes, weekly reports     | —               |
 
