@@ -12,6 +12,9 @@ SEQUENCE="1"            # Start fresh
 CHAINCODE_PATH="C:/Users/DYNAMIC/Desktop/DYNAMIC/Projects/Anonymous-Crime-Reporting-System/SafeChain/fabric/chaincode/xcrm"
 PACKAGE_NAME="./${CHAINCODE_NAME}_${VERSION}.tar.gz"
 
+# Orderer TLS root cert file path
+ORDERER_TLS_ROOTCERT="C:/Users/DYNAMIC/Desktop/DYNAMIC/Projects/Anonymous-Crime-Reporting-System/SafeChain/fabric/crypto-config/ordererOrganizations/xcrm.com/orderers/orderer.xcrm.com/tls/ca.crt"
+
 # Set FABRIC_CFG_PATH for this session
 export FABRIC_CFG_PATH="C:/Users/DYNAMIC/Desktop/DYNAMIC/Projects/Anonymous-Crime-Reporting-System/SafeChain/fabric"
 
@@ -24,10 +27,6 @@ rm -f "$PACKAGE_NAME"
 
 # Package chaincode
 peer lifecycle chaincode package "$PACKAGE_NAME" --path "$CHAINCODE_PATH" --lang node --label "${CHAINCODE_NAME}_${VERSION}"
-if [ $? -ne 0 ]; then
-  echo "❌ Failed to package chaincode"
-  exit 1
-fi
 echo "✅ Chaincode packaged: $PACKAGE_NAME"
 
 # =============================
@@ -42,11 +41,7 @@ export CORE_PEER_ADDRESS="localhost:7051"
 export CORE_PEER_MSPCONFIGPATH="C:/Users/DYNAMIC/Desktop/DYNAMIC/Projects/Anonymous-Crime-Reporting-System/SafeChain/fabric/crypto-config/peerOrganizations/police.xcrm.com/users/Admin@police.xcrm.com/msp"
 export CORE_PEER_TLS_ENABLED=false
 
-peer lifecycle chaincode install "$PACKAGE_NAME" --peerAddresses localhost:7051
-if [ $? -ne 0 ]; then
-  echo "❌ Failed to install chaincode on Police peer"
-  exit 1
-fi
+peer lifecycle chaincode install "$PACKAGE_NAME"
 echo "✅ Installed on Police peer"
 
 # =============================
@@ -61,11 +56,7 @@ export CORE_PEER_ADDRESS="localhost:8051"
 export CORE_PEER_MSPCONFIGPATH="C:/Users/DYNAMIC/Desktop/DYNAMIC/Projects/Anonymous-Crime-Reporting-System/SafeChain/fabric/crypto-config/peerOrganizations/forensics.xcrm.com/users/Admin@forensics.xcrm.com/msp"
 export CORE_PEER_TLS_ENABLED=false
 
-peer lifecycle chaincode install "$PACKAGE_NAME" --peerAddresses localhost:8051
-if [ $? -ne 0 ]; then
-  echo "❌ Failed to install chaincode on Forensics peer"
-  exit 1
-fi
+peer lifecycle chaincode install "$PACKAGE_NAME"
 echo "✅ Installed on Forensics peer"
 
 # =============================
@@ -80,12 +71,23 @@ export CORE_PEER_ADDRESS="localhost:9051"
 export CORE_PEER_MSPCONFIGPATH="C:/Users/DYNAMIC/Desktop/DYNAMIC/Projects/Anonymous-Crime-Reporting-System/SafeChain/fabric/crypto-config/peerOrganizations/courts.xcrm.com/users/Admin@courts.xcrm.com/msp"
 export CORE_PEER_TLS_ENABLED=false
 
-peer lifecycle chaincode install "$PACKAGE_NAME" --peerAddresses localhost:9051
-if [ $? -ne 0 ]; then
-  echo "❌ Failed to install chaincode on Courts peer"
+peer lifecycle chaincode install "$PACKAGE_NAME"
+echo "✅ Installed on Courts peer"
+
+# =============================
+# Extract Package ID for approval
+# =============================
+echo "============================="
+echo " 🔍 Querying installed chaincodes to get package ID"
+echo "============================="
+
+PACKAGE_ID=$(peer lifecycle chaincode queryinstalled --output json | jq -r --arg LABEL "${CHAINCODE_NAME}_${VERSION}" '.installed_chaincodes[] | select(.label == $LABEL) | .package_id')
+
+if [ -z "$PACKAGE_ID" ]; then
+  echo "❌ Could not find package ID for label ${CHAINCODE_NAME}_${VERSION}"
   exit 1
 fi
-echo "✅ Installed on Courts peer"
+echo "✅ Found package ID: $PACKAGE_ID"
 
 # =============================
 # Approve for Police — NO TLS for peer, TLS for orderer
@@ -99,25 +101,17 @@ export CORE_PEER_ADDRESS="localhost:7051"
 export CORE_PEER_MSPCONFIGPATH="C:/Users/DYNAMIC/Desktop/DYNAMIC/Projects/Anonymous-Crime-Reporting-System/SafeChain/fabric/crypto-config/peerOrganizations/police.xcrm.com/users/Admin@police.xcrm.com/msp"
 export CORE_PEER_TLS_ENABLED=false
 
-PACKAGE_ID=$(peer lifecycle chaincode queryinstalled --output json | jq -r '.installed_chaincodes[0].package_id')
-if [ -z "$PACKAGE_ID" ]; then
-  echo "❌ Could not find package ID"
-  exit 1
-fi
-
 peer lifecycle chaincode approveformyorg \
   -o localhost:7050 \
   --ordererTLSHostnameOverride orderer.xcrm.com \
+  --tls \
+  --tlsRootCertFiles "$ORDERER_TLS_ROOTCERT" \
   --channelID "$CHANNEL_NAME" \
   --name "$CHAINCODE_NAME" \
   --version "$VERSION" \
   --package-id "$PACKAGE_ID" \
   --sequence "$SEQUENCE" \
   --peerAddresses localhost:7051
-if [ $? -ne 0 ]; then
-  echo "❌ Failed to approve chaincode for Police"
-  exit 1
-fi
 echo "✅ Approved by Police"
 
 # =============================
@@ -135,16 +129,14 @@ export CORE_PEER_TLS_ENABLED=false
 peer lifecycle chaincode approveformyorg \
   -o localhost:7050 \
   --ordererTLSHostnameOverride orderer.xcrm.com \
+  --tls \
+  --tlsRootCertFiles "$ORDERER_TLS_ROOTCERT" \
   --channelID "$CHANNEL_NAME" \
   --name "$CHAINCODE_NAME" \
   --version "$VERSION" \
   --package-id "$PACKAGE_ID" \
   --sequence "$SEQUENCE" \
   --peerAddresses localhost:8051
-if [ $? -ne 0 ]; then
-  echo "❌ Failed to approve chaincode for Forensics"
-  exit 1
-fi
 echo "✅ Approved by Forensics"
 
 # =============================
@@ -162,16 +154,14 @@ export CORE_PEER_TLS_ENABLED=false
 peer lifecycle chaincode approveformyorg \
   -o localhost:7050 \
   --ordererTLSHostnameOverride orderer.xcrm.com \
+  --tls \
+  --tlsRootCertFiles "$ORDERER_TLS_ROOTCERT" \
   --channelID "$CHANNEL_NAME" \
   --name "$CHAINCODE_NAME" \
   --version "$VERSION" \
   --package-id "$PACKAGE_ID" \
   --sequence "$SEQUENCE" \
   --peerAddresses localhost:9051
-if [ $? -ne 0 ]; then
-  echo "❌ Failed to approve chaincode for Courts"
-  exit 1
-fi
 echo "✅ Approved by Courts"
 
 # =============================
@@ -189,6 +179,8 @@ export CORE_PEER_TLS_ENABLED=false
 peer lifecycle chaincode commit \
   -o localhost:7050 \
   --ordererTLSHostnameOverride orderer.xcrm.com \
+  --tls \
+  --tlsRootCertFiles "$ORDERER_TLS_ROOTCERT" \
   --channelID "$CHANNEL_NAME" \
   --name "$CHAINCODE_NAME" \
   --version "$VERSION" \
@@ -196,10 +188,6 @@ peer lifecycle chaincode commit \
   --peerAddresses localhost:7051 \
   --peerAddresses localhost:8051 \
   --peerAddresses localhost:9051
-if [ $? -ne 0 ]; then
-  echo "❌ Failed to commit chaincode"
-  exit 1
-fi
 echo "✅ Chaincode committed to channel $CHANNEL_NAME"
 
 echo "==================================="

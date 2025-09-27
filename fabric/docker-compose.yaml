@@ -1,6 +1,3 @@
-# docker-compose.yaml — xCRM Development Network (Fabric v2.5.x)
-# Run with: docker-compose up -d
-
 version: '3.8'
 
 networks:
@@ -34,9 +31,10 @@ services:
       - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/fabric/genesis.block
       - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
       - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
-      - ORDERER_GENERAL_TLS_ENABLED=false
+      - ORDERER_GENERAL_TLS_ENABLED=true
     volumes:
       - ./crypto-config/ordererOrganizations/xcrm.com/orderers/orderer.xcrm.com/msp:/etc/hyperledger/msp/orderer/msp
+      - ./crypto-config/ordererOrganizations/xcrm.com/orderers/orderer.xcrm.com/tls:/etc/hyperledger/fabric/tls   # <-- Corrected path here
       - ./channel-artifacts/genesis.block:/etc/hyperledger/fabric/genesis.block
       - orderer.xcrm.com.ledger:/var/hyperledger/production/orderer
     ports:

@@ -6,7 +6,7 @@
 const { Contract } = require('fabric-contract-api');
 
 // Import modular logic
-const reports = require('./reports');
+const reports = require('./reporter');
 const cases = require('./cases');
 const evidence = require('./evidence');
 
