@@ -1,14 +1,18 @@
 {
-  "name": "xcrm",
+  "name": "xcrm-chaincode",
   "version": "1.0.0",
-  "description": "xCRM Chaincode",
-  "engines": {
-    "node": ">=16"
-  },
+  "description": "Stub Hyperledger Fabric chaincode for Anonymous Crime Reporting System",
+  "main": "index.js",
   "scripts": {
-    "start": "fabric-chaincode-node start"
+    "test": "mocha --timeout 5000"
   },
   "dependencies": {
-    "fabric-contract-api": "^2.5.5"
+    "fabric-contract-api": "^2.4.0"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "sinon": "^17.0.1",
+    "fabric-shim": "^2.4.0"
   }
 }

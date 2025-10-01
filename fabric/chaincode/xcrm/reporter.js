@@ -1,24 +1,26 @@
-// /fabric/chaincode/xcrm/reports.js
-// Handles crime report submission and retrieval
+'use strict';
 
-/**
- * Submits a crime report (to be stored in PDC later)
- */
 async function submitReport(ctx, caseId, details) {
-    console.log(`[reports.submitReport] Called with caseId: ${caseId}, details: ${details}`);
-    return `Report submitted for case ${caseId}`;
+    console.log("submitReport called with:", caseId, details);
+
+    // For now, just return a dummy JSON object
+    return {
+        caseId,
+        details,
+        status: "REPORTED",
+        timestamp: new Date().toISOString()
+    };
 }
 
-/**
- * Retrieves a case (from PDC or public state later)
- */
 async function getCase(ctx, caseId) {
-    console.log(`[reports.getCase] Called with caseId: ${caseId}`);
-    return `Case data retrieved for case ${caseId}`;
+    console.log("getCase called with:", caseId);
+
+    // Dummy response
+    return {
+        caseId,
+        details: "Sample case details",
+        status: "PENDING"
+    };
 }
 
-// Export functions for use in main contract
-module.exports = {
-    submitReport,
-    getCase
-};
+module.exports = { submitReport, getCase };

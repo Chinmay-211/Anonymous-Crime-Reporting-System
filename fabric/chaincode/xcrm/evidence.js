@@ -1,15 +1,13 @@
-// /fabric/chaincode/xcrm/evidence.js
-// Handles evidence upload (to be stored in PDC later)
+'use strict';
 
-/**
- * Uploads forensic or digital evidence (PDC target: ForensicReportsCollection)
- */
-async function uploadEvidence(ctx, caseId, evidence) {
-    console.log(`[evidence.uploadEvidence] Called with caseId: ${caseId}`);
-    return `Evidence uploaded for case ${caseId}`;
+async function uploadEvidence(ctx, caseId, evidenceData) {
+    console.log("uploadEvidence called with:", caseId, evidenceData);
+
+    return {
+        caseId,
+        evidence: evidenceData,
+        uploadedAt: new Date().toISOString()
+    };
 }
 
-// Export functions for use in main contract
-module.exports = {
-    uploadEvidence
-};
+module.exports = { uploadEvidence };

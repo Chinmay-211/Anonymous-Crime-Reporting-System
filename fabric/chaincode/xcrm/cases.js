@@ -1,15 +1,13 @@
-// /fabric/chaincode/xcrm/cases.js
-// Handles investigation status updates
+'use strict';
 
-/**
- * Updates the status of a case (e.g., "Under Investigation", "Closed")
- */
 async function updateStatus(ctx, caseId, status) {
-    console.log(`[cases.updateStatus] Called with caseId: ${caseId}, new status: ${status}`);
-    return `Status updated for case ${caseId} to: ${status}`;
+    console.log("updateStatus called with:", caseId, status);
+
+    return {
+        caseId,
+        status,
+        updatedAt: new Date().toISOString()
+    };
 }
 
-// Export functions for use in main contract
-module.exports = {
-    updateStatus
-};
+module.exports = { updateStatus };
